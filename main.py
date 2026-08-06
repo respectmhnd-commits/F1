@@ -3,7 +3,6 @@ import subprocess
 import streamlink
 import threading
 
-# جلب البيانات من المدخلات
 c1_name = os.getenv("C1_NAME")
 k1_key = os.getenv("K1_KEY")
 c2_name = os.getenv("C2_NAME")
@@ -19,10 +18,9 @@ def start_bridge(channel_name, stream_key, destination):
             
         playback_url = streams["best"].url
         
-        # تحديد الوجهة بناءً على المدخل
         if destination == "restream":
             rtmp_url = f"rtmp://live.restream.io/live/{stream_key}"
-        else: # افتراضي يوتيوب
+        else:
             rtmp_url = f"rtmp://a.rtmp.youtube.com/live2/{stream_key}"
         
         print(f"[{channel_name}] Bridging to {destination}...")
@@ -38,7 +36,7 @@ def start_bridge(channel_name, stream_key, destination):
     except Exception as e:
         print(f"[{channel_name}] Error: {e}")
 
-# تشغيل القناتين بوجهات مختلفة
+# تشغيل القناتين معاً (الأولى يوتيوب، الثانية ريستريم)
 t1 = threading.Thread(target=start_bridge, args=(c1_name, k1_key, "youtube"))
 t2 = threading.Thread(target=start_bridge, args=(c2_name, k2_key, "restream"))
 
