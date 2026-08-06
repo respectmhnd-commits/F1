@@ -1,53 +1,51 @@
 import os
 import subprocess
-import requests
+import streamlink
+import sys
 
-platform = "youtube"
-channel_name = "tmnaa"
-stream_key = "7swd-bmce-ym7w-5e2m-499u"
+# جلب البيانات من الإعدادات اللي أدخلتها في جيثوب
+platform = os.getenv("PLATFORM")
+channel_name = os.getenv("CHANNEL_NAME")
+stream_key = os.getenv("STREAM_KEY")
 
-print(f"Fetching live stream for Kick channel: {channel_name}...")
-
-kick_api_url = f"https://kick.com/api/v2/channels/{channel_name}"
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
+print(f"Fetching stream for: {channel_name} on {platform}...")
 
 try:
-    response = requests.get(kick_api_url, headers=headers)
-    data = response.json()
-    
-    playback_url = data.get("playback_url")
-    
-    if not playback_url:
-        print("Error: The channel is offline or playback URL not found!")
-        exit(1)
+    # سحب الرابط عبر ستريم لينك لتجاوز الحماية
+    streams = streamlink.streams(f"https://kick.com/{channel_name}")
+    if "best" not in streams:
+        print("Error: Could not find active stream.")
+        sys.exit(1)
         
-    print(f"Found playback URL: {playback_url}")
+    playback_url = streams["best"].url
+    
+    # تحديد رابط الإرسال بناءً على المنصة
+    if platform == "restream":
+        rtmp_url = f"rtmp://live.restream.io/live/{stream_key}"
+    else:
+        rtmp_url = f"rtmp://a.rtmp.youtube.com/live2/{stream_key}"
+
+    print(f"Starting bridge to {platform}...")
+
+    cmd = [
+        "ffmpeg",
+        "-re",
+        "-i", playback_url,
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-maxrate", "4500k",
+        "-bufsize", "9000k",
+        "-pix_fmt", "yuv420p",
+        "-g", "60",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        "-ar", "44100",
+        "-f", "flv",
+        rtmp_url
+    ]
+
+    subprocess.run(cmd)
+
 except Exception as e:
-    print(f"Error fetching Kick API: {e}")
-    exit(1)
-
-rtmp_url = f"rtmp://a.rtmp.youtube.com/live2/{stream_key}"
-
-print("Starting bridge to YouTube...")
-
-cmd = [
-    "ffmpeg",
-    "-re",
-    "-i", playback_url,
-    "-c:v", "libx264",
-    "-preset", "veryfast",
-    "-maxrate", "4500k",
-    "-bufsize", "9000k",
-    "-pix_fmt", "yuv420p",
-    "-g", "60",
-    "-c:a", "aac",
-    "-b:a", "128k",
-    "-ar", "44100",
-    "-f", "flv",
-    rtmp_url
-]
-
-subprocess.run(cmd)
- 
+    print(f"Error: {e}")
+    sys.exit(1)
