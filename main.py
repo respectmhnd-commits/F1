@@ -3,7 +3,7 @@ import subprocess
 import requests
 
 platform = "youtube"
-channel_name = "OSAMAH"
+channel_name = "tmnaa"
 stream_key = "7swd-bmce-ym7w-5e2m-499u"
 
 print(f"Fetching live stream for Kick channel: {channel_name}...")
