@@ -2,47 +2,60 @@ import os
 import subprocess
 import streamlink
 import sys
+import threading
+import time
 
-target_channel = os.getenv("CHANNEL_CHOICE")
+c1_name = os.getenv("C1_NAME")
+k1_key = os.getenv("K1_KEY")
+c2_name = os.getenv("C2_NAME")
+k2_key = os.getenv("K2_KEY")
 platform = os.getenv("PLATFORM")
-stream_key = os.getenv("STREAM_KEY")
 
-print(f"Fetching stream for Kick channel: {target_channel} to platform: {platform}...")
-
-try:
-    streams = streamlink.streams(f"https://kick.com/{target_channel}")
-    if "best" not in streams:
-        print(f"Error: Could not find active stream for {target_channel}. Make sure it is live.")
-        sys.exit(1)
-        
-    playback_url = streams["best"].url
-    
+def get_rtmp_url(platform, key):
     if platform == "restream":
-        rtmp_url = f"rtmp://live.restream.io/live/{stream_key}"
+        return f"rtmp://live.restream.io/live/{key}"
     else:
-        rtmp_url = f"rtmp://a.rtmp.youtube.com/live2/{stream_key}"
+        return f"rtmp://a.rtmp.youtube.com/live2/{key}"
 
-    print(f"Starting bridge from {target_channel} to {platform}...")
+def start_bridge(channel_name, stream_key):
+    print(f"[{channel_name}] Fetching stream URL...")
+    try:
+        streams = streamlink.streams(f"https://kick.com/{channel_name}")
+        if "best" not in streams:
+            print(f"[{channel_name}] Error: Active stream not found.")
+            return
+            
+        playback_url = streams["best"].url
+        rtmp_url = get_rtmp_url(platform, stream_key)
+        
+        print(f"[{channel_name}] Starting bridge to {platform}...")
+        cmd = [
+            "ffmpeg",
+            "-re",
+            "-i", playback_url,
+            "-c:v", "libx264",
+            "-preset", "veryfast",
+            "-maxrate", "4500k",
+            "-bufsize", "9000k",
+            "-pix_fmt", "yuv420p",
+            "-g", "60",
+            "-c:a", "aac",
+            "-b:a", "128k",
+            "-ar", "44100",
+            "-f", "flv",
+            rtmp_url
+        ]
+        
+        subprocess.run(cmd)
+    except Exception as e:
+        print(f"[{channel_name}] Error: {e}")
 
-    cmd = [
-        "ffmpeg",
-        "-re",
-        "-i", playback_url,
-        "-c:v", "libx264",
-        "-preset", "veryfast",
-        "-maxrate", "4500k",
-        "-bufsize", "9000k",
-        "-pix_fmt", "yuv420p",
-        "-g", "60",
-        "-c:a", "aac",
-        "-b:a", "128k",
-        "-ar", "44100",
-        "-f", "flv",
-        rtmp_url
-    ]
+# تشغيل القناتين معاً في خيوط منفصلة (Threads) لتستمر بالتوازي
+t1 = threading.Thread(target=start_bridge, args=(c1_name, k1_key))
+t2 = threading.Thread(target=start_bridge, args=(c2_name, k2_key))
 
-    subprocess.run(cmd)
+t1.start()
+t2.start()
 
-except Exception as e:
-    print(f"Error: {e}")
-    sys.exit(1)
+t1.join()
+t2.join()
