@@ -1,21 +1,24 @@
-name: Start_Stream
+name: Dual_Stream_Bridge
 
 on:
   workflow_dispatch:
     inputs:
+      channel_choice:
+        description: 'اختر القناة المراد بثها'
+        required: true
+        default: 'channel_1'
+        type: choice
+        options:
+          - channel_1
+          - channel_2
       platform:
-        description: 'اختر المنصة (youtube أو restream)'
+        description: 'اختر منصة الإرسال (youtube أو restream)'
         required: true
         default: 'youtube'
         type: choice
         options:
           - youtube
           - restream
-      channel_name:
-        description: 'اسم قناة كيك'
-        required: true
-        default: 'OSAMAH'
-        type: string
       stream_key:
         description: 'مفتاح البث (Stream Key)'
         required: true
@@ -42,8 +45,9 @@ jobs:
 
       - name: Run Stream Script
         env:
+          CHANNEL_CHOICE: ${{ inputs.channel_choice }}
           PLATFORM: ${{ inputs.platform }}
-          CHANNEL_NAME: ${{ inputs.channel_name }}
           STREAM_KEY: ${{ inputs.stream_key }}
         run: |
           python main.py
+
