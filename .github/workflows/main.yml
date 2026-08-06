@@ -1,28 +1,34 @@
-name: Start_Stream
+name: Dual_Simultaneous_Stream
 
 on:
   workflow_dispatch:
     inputs:
-      channel_choice:
-        description: 'اختر القناة'
+      channel_1_name:
+        description: 'يوزر القناة الأولى'
         required: true
         default: 'OSAMAH'
-        type: choice
-        options:
-          - OSAMAH
-          - اسم_القناة_الثانية_هنا
+        type: string
+      stream_key_1:
+        description: 'مفتاح البث للقناة الأولى (يوتيوب أو ريستريم)'
+        required: true
+        type: string
+      channel_2_name:
+        description: 'يوزر القناة الثانية'
+        required: true
+        default: 'اسم_القناة_الثانية'
+        type: string
+      stream_key_2:
+        description: 'مفتاح البث للقناة الثانية (يوتيوب أو ريستريم)'
+        required: true
+        type: string
       platform:
-        description: 'اختر المنصة (youtube أو restream)'
+        description: 'اختر المنصة المشتركة للثنتين (youtube أو restream)'
         required: true
         default: 'youtube'
         type: choice
         options:
           - youtube
           - restream
-      stream_key:
-        description: 'مفتاح البث (Stream Key)'
-        required: true
-        type: string
 
 jobs:
   build:
@@ -43,11 +49,12 @@ jobs:
           sudo apt-get install -y ffmpeg
           pip install streamlink
 
-      - name: Run Stream Script
+      - name: Run Dual Stream Script
         env:
-          CHANNEL_CHOICE: ${{ inputs.channel_choice }}
+          C1_NAME: ${{ inputs.channel_1_name }}
+          K1_KEY: ${{ inputs.stream_key_1 }}
+          C2_NAME: ${{ inputs.channel_2_name }}
+          K2_KEY: ${{ inputs.stream_key_2 }}
           PLATFORM: ${{ inputs.platform }}
-          STREAM_KEY: ${{ inputs.stream_key }}
         run: |
           python main.py
-
