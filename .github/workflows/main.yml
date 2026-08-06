@@ -4,31 +4,23 @@ on:
   workflow_dispatch:
     inputs:
       channel_1_name:
-        description: 'يوزر القناة الأولى'
+        description: 'يوزر القناة الأولى (مثال: Fwaz)'
         required: true
-        default: 'OSAMAH'
+        default: 'Fwaz'
         type: string
       stream_key_1:
-        description: 'مفتاح البث للقناة الأولى (يوتيوب أو ريستريم)'
+        description: 'مفتاح البث للقناة الأولى (يوتيوب)'
         required: true
         type: string
       channel_2_name:
-        description: 'يوزر القناة الثانية'
+        description: 'يوزر القناة الثانية (مثال: tmnaa)'
         required: true
-        default: 'اسم_القناة_الثانية'
+        default: 'tmnaa'
         type: string
       stream_key_2:
-        description: 'مفتاح البث للقناة الثانية (يوتيوب أو ريستريم)'
+        description: 'مفتاح البث للقناة الثانية (ريستريم)'
         required: true
         type: string
-      platform:
-        description: 'اختر المنصة المشتركة للثنتين (youtube أو restream)'
-        required: true
-        default: 'youtube'
-        type: choice
-        options:
-          - youtube
-          - restream
 
 jobs:
   build:
@@ -55,6 +47,5 @@ jobs:
           K1_KEY: ${{ inputs.stream_key_1 }}
           C2_NAME: ${{ inputs.channel_2_name }}
           K2_KEY: ${{ inputs.stream_key_2 }}
-          PLATFORM: ${{ inputs.platform }}
         run: |
           python main.py
