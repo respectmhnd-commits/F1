@@ -2,6 +2,24 @@ name: Start_Stream
 
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: 'اختر المنصة (youtube أو restream)'
+        required: true
+        default: 'youtube'
+        type: choice
+        options:
+          - youtube
+          - restream
+      channel_name:
+        description: 'اسم قناة كيك'
+        required: true
+        default: 'OSAMAH'
+        type: string
+      stream_key:
+        description: 'مفتاح البث (Stream Key)'
+        required: true
+        type: string
 
 jobs:
   build:
@@ -20,8 +38,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
+          pip install streamlink
 
       - name: Run Stream Script
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          CHANNEL_NAME: ${{ inputs.channel_name }}
+          STREAM_KEY: ${{ inputs.stream_key }}
         run: |
           python main.py
-
