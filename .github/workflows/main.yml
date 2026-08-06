@@ -1,18 +1,18 @@
-name: Dual_Stream_Bridge
+name: Start_Stream
 
 on:
   workflow_dispatch:
     inputs:
       channel_choice:
-        description: 'اختر القناة المراد بثها'
+        description: 'اختر القناة'
         required: true
-        default: 'channel_1'
+        default: 'OSAMAH'
         type: choice
         options:
-          - channel_1
-          - channel_2
+          - OSAMAH
+          - اسم_القناة_الثانية_هنا
       platform:
-        description: 'اختر منصة الإرسال (youtube أو restream)'
+        description: 'اختر المنصة (youtube أو restream)'
         required: true
         default: 'youtube'
         type: choice
